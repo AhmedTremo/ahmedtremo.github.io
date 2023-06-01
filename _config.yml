@@ -20,7 +20,7 @@ timezone: Africa/Cairo
 
 title: Ahmed Tremo # the main title
 
-tagline: My personal website # it will display as the sub-title
+tagline: My personal blog # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   Ahmed Tremo's personal Blog
@@ -80,13 +80,13 @@ theme_mode: # [light|dark]
 img_cdn:
 
 # the avatar on sidebar, support local or CORS resources
-avatar: /assets/img/ahmedtremo.jpg
+avatar: /assets/img/personal/ahmedtremo.jpg
 
 # boolean type, the global switch for TOC in posts.
 toc: true
 
 comments:
-  active: # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
+  active: disqus # The global switch for posts comments, e.g., 'disqus'.  Keep it empty means disable
   # The active options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
