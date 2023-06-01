@@ -15,7 +15,7 @@ In my free time, I play football & go to the gym. Fun fact, My [bachelor thesis]
 
 Summer 2019, I spent 3 months in the US as a part of culture exchange program called [Work and Travel](https://en.wikipedia.org/wiki/Work_and_Travel_USA) where I worked at [Six Flags](https://www.sixflags.com/greatescape) as a ride operator. (was really fun)!
 
-![tremo-mountain](/assets/img/tremo-mountain.jpg)
+![tremo-mountain](/assets/img/personal/tremo-mountain.jpg){: w="700" h="400" }
 
 
 I’m best reached through [LinkedIn](https://www.linkedin.com/in/ahmedtremo/). I’m always open to interesting conversations and collaboration.
