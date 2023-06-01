@@ -10,7 +10,7 @@ author: tremo
 
 Finally! After a year long intense planning and no action, I managed to finally setup my own blog from scratch, using Github pages. A simple question that everyone might ask is "why not write blogs on **WordPress** or **Medium** just like everyone else?". Well, multiple reasons; it has bloated code that you can't get rid-off, unnecessary targeted ads and more importantly, if you are a *Developer*, you are missing out all the fun!
 
-![Desktop View](/assets/img/post/2020-12-28-starting-a-blog-on-gh-pages/Intro_meme.jpg){: width="500"}
+![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/Intro_meme.jpg){: width="500"}
 _Scenario of a developer starting a blog_
 
 Did I convince you? OK, now let's break down the humongous steps to setup your blogging site.
