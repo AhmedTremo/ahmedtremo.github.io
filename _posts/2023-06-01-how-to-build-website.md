@@ -55,7 +55,7 @@ For Chirpy theme, the instructions are as follows:
     - `lang` is the language of the site
 6. Run `bundle exec jekyll s` to start the local server.
 
-![Template Blog](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/template-blog.png){: width="700"}
+![Template Blog](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/template-blog.PNG){: width="700"}
 _The empty template you should see_
 
 If you face any issues, you can refer to the [Chripy theme's Getting started guide](https://chirpy.cotes.page/posts/getting-started/).
@@ -88,7 +88,7 @@ After you purchase your domain, go into your domain management portal, click on 
 
 So far, my DNS record looks like this:
 
-![Desktop View](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/DNS-settings.png)
+![Desktop View](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/DNS-settings.PNG){: width="700"}
 _My GoDaddy's DNS records_
 
 ### Configure Github Pages
