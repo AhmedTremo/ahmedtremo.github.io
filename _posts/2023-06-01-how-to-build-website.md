@@ -8,12 +8,19 @@ author: tremo
 
 ## My first ever blog post
 
-Finally! After a year long intense planning and no action, I managed to finally setup my own blog from scratch, using Github pages. A simple question that everyone might ask is "why not write blogs on **WordPress** or **Medium** just like everyone else?". Well, multiple reasons; it has bloated code that you can't get rid-off, unnecessary targeted ads and more importantly, if you are a *Developer*, you are missing out all the fun!
+I've been thinking about starting a blog for a while now and I was procrastinating quite a bit :D. But, I finally did it and here I am writing my first ever blog post. Suprisingly enough, it will be about my experience setting up my blog and how you can do it too :D.
 
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/Intro_meme.jpg){: width="500"}
+![Desktop View](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/Intro_meme.jpg){: width="500"}
 _Scenario of a developer starting a blog_
 
-Did I convince you? OK, now let's break down the humongous steps to setup your blogging site.
+## Why Github Pages?
+
+I'm a progammer. I've always wanted to have a personal website to showcase my projects and share my thoughts. I've looked into various blogging platforms like [Wordpress](https://wordpress.com/), [Medium](https://medium.com/), [Substack](https://substack.com), and [Ghost](https://ghost.org/). But, I chose Github Pages with Jekyll because I wanted to have:
+1. Full control over my blog and I wanted to customize it to my taste. 
+2. A blog that is free and doesn't require me to pay for hosting. 
+3. A blog that is simple, fast and easy to maintain doesn't require me to spend hours to configure it.
+
+Did I convince you? OK, now let's break down the steps to setup your blogging site.
 
 ## Step 1: Decide Your Theme
 
@@ -26,85 +33,76 @@ Few sites where you can grab these templates:
 * <https://jekyll-themes.com/>
 * <https://jamstackthemes.dev/ssg/jekyll/>
 
-I personally picked the [Chirpy theme](https://github.com/cotes2020/jekyll-theme-chirpy/) since it fits my expectations.
+I personally picked the [Chirpy theme](https://github.com/cotes2020/chirpy-starter/) since it fits my expectations and it has a Dark theme :D.
 
 
 ## Step 2: Activate Github Pages
 
 Once you pick the Jekyll theme, it's time to host it on Github Pages. The theme you picked usually comes with a set of instructions to configure and the instruction varies between different themes.
 
-I'll try to explain briefly on how I setup the Chirpy theme. First, fork or clone it to your personal repo and then modify the [`_config.yaml`](https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/_config.yml). Push these changes to your github repository and you'll find a new branch named `gh-pages`*, created by the CI for you.
+For Chirpy theme, the instructions are as follows:
+1. Use the [template](https://github.com/cotes2020/chirpy-starter/generate) to create your own repository.
+    - Make sure to name it as `<your-gh-username>.github.io`
+    - After doing this step Github actions will build and deploy your blog automatically to `<your-gh-username>.github.io`
+    - But you don't want just a template, you want to customized it to yourself. So, let's move on to the next step.
+2. Clone the repository you just created.
+3. Install Ruby and Jekyll on your machine through the [official guide](https://jekyllrb.com/docs/installation/).
+4. Run `bundle install` to install the required gems.
+5. Update the variables of `_config.yml` as needed. Some of them are typical options.
+    - `url` is the address of your website
+    - `avatar` is the profile picture in the sidebar
+    - `timezone` is used to display the date and time of your posts
+    - `lang` is the language of the site
+6. Run `bundle exec jekyll s` to start the local server.
 
-Next, activate the Github Pages by clicking on your repo **Settings** and scrolling down to the Github Pages section. Under **Source** select `gh-pages` and click **Save**.
+![Template Blog](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/template-blog.png){: width="700"}
+_The empty template you should see_
 
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/01-enable-github-pages.png)
-
-**That's it!** Your blog is now published and can be accessed via <https://your-gh-username.github.io/repo-name>
-
-
-\* *Make sure the Github Actions (or other CIs like Travis) is configured, since it is responsible to build your site and publish the content on `gh-pages` branch.*
-
-
+If you face any issues, you can refer to the [Chripy theme's Getting started guide](https://chirpy.cotes.page/posts/getting-started/).
 
 ## Step 3: Setup Your Custom Root Domain
 
 You need to visit one of the domain name registrar to buy a custom domain. There are multiple registrars to choose from: 
 
-* <https://www.godaddy.com/>
-* <https://porkbun.com/>
-* <https://domains.google/>
-* <https://www.namecheap.com/>
-... and a thousand more
+* [GoDaddy](https://www.godaddy.com/)
+* [Google Domains](https://domains.google)
+* [Name Cheap](https://www.namecheap.com/)
+* ... and many more
 
-*I personally use Porkbun since they are cheap and easy-to-use.*
+*I personally chose GoDaddy since I had to pay ~10$ for 2-years plan*
+
+### Configure Your Domain
 
 After you purchase your domain, go into your domain management portal, click on manage DNS and add `A` type DNS records for github pages.
 
-| Record Type | Host | Answer |
-|-------------|------|--------|
-| A | your-domain.com | 185.199.108.153 |
-| A | your-domain.com | 185.199.109.153 |
-| A | your-domain.com | 185.199.110.153 |
-| A | your-domain.com | 185.199.111.153 |
+| Type | Data |
+|------|------|
+| A | 185.199.108.153 |
+| A | 185.199.109.153 |
+| A | 185.199.110.153 |
+| A | 185.199.111.153 |
+| CNAME | gh-username.github.io |
 
 *(These `A` type DNS records map your domain name to the Github's IP address)*
 
-OH! Make sure to add an `ALIAS` type record to point `www.your-domain.com` to `your-domain.com`
 
 So far, my DNS record looks like this:
 
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/02-porkbun-dns-root.png)
-_My DNS records with Root Domain Configured_
+![Desktop View](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/DNS-settings.png)
+_My GoDaddy's DNS records_
 
-Now that you have your domain's DNS setup, you have 2 options:
+### Configure Github Pages
 
-1. Use the root domain to host your blog (Example: <https://your-domain.com>)
-2. Create a sub-domain to host your blog (Example: <https://blog.your-domain.com>)
+Now that you have your domain's DNS setup, Let's head back to Github and configure your Github Pages to use your custom domain.
 
-### Use Root Domain To Serve Your Blog
+1. Go to your repository's settings page.
+2. Scroll down to the **Pages** section.
+3. Under **Custom domain** enter your domain name and click **Save**.
 
-Head to your Github repository, click on **Settings → Github Pages → Custom Domain** and enter your domain.
+![Custom Domain](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/github-pages-custom-domain.PNG){: width="700"}
+_My Github Pages Custom Domain page_
 
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/03-custom-root-domain.png)
-
-This creates and commits a `CNAME` file, with your domain name as content, in the root dir of your repo.
-
-Your website should now be served via <https://your-domain.com>
-
-### Use Sub-Domain To Serve Your Blog
-
-Head to your domain registrar and go to your domain's DNS settings. Add a new `CNAME` record that maps your `your-sub-domain.your-domain.com` to `your-gh-username.github.io`
-
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/04-subdomain-configure.png)
-_My Complete DNS Configuration_
-
-Now, visit your Github repo and go to **Settings → Github Pages → Custom Domain** and enter your sub-domain.
-
-![Desktop View](/assets/img/posts/2020-12-28-starting-a-blog-on-gh-pages/05-subdomain-gh-pages.png)
-
-This creates and commits a `CNAME` file, with your domain name as content, in the root dir of your repo.
-
-***Best Practice :*** Click on **Enforce HTTPS** to serve your blog via secure SSL connection. Your site will be configured with a free SSL certificate from Let's Encrypt. Note that if you choose not to enable this for some reason, your site will not be served in future if a strict policy is implemented by browsers.
+***Best Practice :*** Click on **Enforce HTTPS** to serve your blog via secure SSL connection. Your site will be configured with a free SSL certificate from [Let's Encrypt](https://letsencrypt.org/).
 
 ## Bonus Tip: Test Your Site
 
@@ -112,26 +110,18 @@ If you see a `404 error` or `Domain Not Found error` your DNS record might not b
 
 ```bash
 $ dig YOUR-DOMAIN.COM +noall +answer
-$ dig YOUR-SUB-DOMAIN.YOUR-DOMAIN.COM +noall +answer
 ```
 
 Here is a reference from digging my website:
 
 ```bash
-$ dig DINESHPRASANTH.ME +noall +answer
-DINESHPRASANTH.ME.	96	IN	A	185.199.110.153
-DINESHPRASANTH.ME.	96	IN	A	185.199.111.153
-DINESHPRASANTH.ME.	96	IN	A	185.199.109.153
-DINESHPRASANTH.ME.	96	IN	A	185.199.108.153
-
-$ dig BLOG.DINESHPRASANTH.ME +noall +answer
-BLOG.DINESHPRASANTH.ME.	129	IN	CNAME	sillebille.github.io.
-sillebille.github.io.	3429	IN	A	185.199.111.153
-sillebille.github.io.	3429	IN	A	185.199.110.153
-sillebille.github.io.	3429	IN	A	185.199.109.153
-sillebille.github.io.	3429	IN	A	185.199.108.153
+$ dig ahmedtremo.com +noall +answer
+ahmedtremo.com.    0    IN    A    185.199.111.153
+ahmedtremo.com.    0    IN    A    185.199.109.153
+ahmedtremo.com.    0    IN    A    185.199.110.153
+ahmedtremo.com.    0    IN    A    185.199.108.153
 ```
 
-Hope you found this article useful. Please stay tuned while I try to improve my blog. Next, I'm working on adding a comments section, and I'll be writing a separate article on how to set it up.
+Hope you found this article useful. If you have any questions, you can check my [blog's repo](https://github.com/AhmedTremo/ahmedtremo.github.io) on Github or feel free to reach out to me on [Twitter](https://twitter.com/ahmedtremo) or [LinkedIn](https://www.linkedin.com/in/ahmedtremo/).
 
 
