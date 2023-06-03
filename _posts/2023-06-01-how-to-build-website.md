@@ -13,6 +13,8 @@ I've been thinking about starting a blog for a while now and I was procrastinati
 ![Desktop View](/assets/img/posts/2023-06-01-starting-a-blog-on-gh-pages/Intro_meme.jpg){: width="500"}
 _Scenario of a developer starting a blog_
 
+### [YouTube Video Walkthrough](https://youtu.be/m1RYsmOMPLs)
+
 ## Why Github Pages?
 
 I'm a progammer. I've always wanted to have a personal website to showcase my projects and share my thoughts. I've looked into various blogging platforms like [Wordpress](https://wordpress.com/), [Medium](https://medium.com/), [Substack](https://substack.com), and [Ghost](https://ghost.org/). But, I chose Github Pages with Jekyll because I wanted to have:
