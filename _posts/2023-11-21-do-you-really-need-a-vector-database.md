@@ -29,11 +29,12 @@ If you still think Vector Search is more suitable for your case, consider using 
 
 Databases like PostgreSQL, with its pgvector extension, and Elasticsearch, with dense vector indexing, support vector storage, indexing, and similarity search capabilities, along with traditional database benefits like ACID compliance, point-in-time recovery, joins, etc.
 
+### But,
 Vector Databases definitely have their specialized use cases, especially for users managing billions of data embeddings. They benefit from architecture decisions that can improve performance over general-purpose databases, ensuring efficient storage of vectors and fast retrieval for similarity search calculations, while offering data safety. However, they aren’t the universal solution they're often portrayed as.
 
 **Further Readings:**
 
 - [Beware Tunnel Vision in AI Retrieval - by Colin Harman](https://colinharman.substack.com/p/beware-tunnel-vision-in-ai-retrieval)
-- [Do you actually need a vector database? | Ethan Rosenthal](https://www.ethanrosenthal.com/2023/04/10/nn-vs-ann/)
+- [Do you actually need a vector database? - Ethan Rosenthal](https://www.ethanrosenthal.com/2023/04/10/nn-vs-ann/)
 
 \#vectordbs \#llms \#genai \#ir
