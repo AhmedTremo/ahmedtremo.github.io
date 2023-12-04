@@ -20,7 +20,7 @@ timezone: Africa/Cairo
 
 title: Ahmed Tremo # the main title
 
-tagline: My personal blog # it will display as the sub-title
+tagline: ML enthusiast # it will display as the sub-title
 
 description: >- # used by seo meta and the atom feed
   AhmedTremo, Blog, Github, Machine Learning, Python
