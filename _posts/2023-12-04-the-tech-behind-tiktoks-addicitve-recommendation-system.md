@@ -65,7 +65,7 @@ TikTok’s recommendation system played a main role in its success and widesprea
 
 **References:**
 
-1. [How TikTok recommends content | TikTok Help Center](https://support.tiktok.com/en/using-tiktok/exploring-videos/how-tiktok-recommends-content)
+1. [How TikTok recommends content](https://support.tiktok.com/en/using-tiktok/exploring-videos/how-tiktok-recommends-content)
 2. [Monolith: Real Time Recommendation System With Collisionless Embedding Table (arxiv.org)](https://arxiv.org/pdf/2209.07663.pdf)
 3. [*An Empirical Investigation of Personalization Factors on TikTok (arxiv.org)](https://arxiv.org/pdf/2201.12271v1.pdf)
 4. [cs.princeton.edu/courses/archive/spring21/cos598D/icde_2021_camera_ready.pdf](https://www.cs.princeton.edu/courses/archive/spring21/cos598D/icde_2021_camera_ready.pdf)
