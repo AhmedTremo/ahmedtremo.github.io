@@ -5,9 +5,6 @@ categories: [TikTok, Recommendation Systems, Kafka, Flink]
 tags: [tiktok, recommendation systems, kafka, flink]
 author: tremo
 ---
-
-# The Tech Behind TikTok’s Addictive Recommendation System
-
 ## Intro
 
 I’ve been using TikTok a lot lately and was curious about the tech behind TikTok’s addictive algorithm, the "Recommendation System." I visited their official [blog post](https://newsroom.tiktok.com/en-us/how-tiktok-recommends-videos-for-you) but found limited details on how it works. So, I googled and found two papers “[Monolith](https://arxiv.org/pdf/2209.07663.pdf)” and “[IPS](https://www.cs.princeton.edu/courses/archive/spring21/cos598D/icde_2021_camera_ready.pdf),” released by ByteDance, TikTok’s parent company, and here is the process as explained by them.
