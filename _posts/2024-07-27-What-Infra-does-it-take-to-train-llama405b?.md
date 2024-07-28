@@ -8,29 +8,29 @@ author: tremo
 
 ## Intro
 
-Setting up the infrastructure for training the latest frontier models is not an easy feat; only a few companies have the scale to do it (Meta, Microsoft, Google, ...). ML training has escalated from requiring up to 512 GPUs to needing 16k H100 GPUs to train Meta's latest Llama3-405B model. This posed a huge challenge for infrastructure setup, necessitating significant innovation to handle this sheer number of GPUs working in tandem, as LLM distributed training jobs require synchronous communication and gang scheduling.
+Setting up the infrastructure for training the latest frontier models is not an easy feat; only a few companies have the scale to do it (Meta, Microsoft, Google, ...). ML training has escalated from requiring up to [512 GPUs to needing 16k H100 GPUs](https://engineering.fb.com/2024/06/12/data-infrastructure/training-large-language-models-at-scale-meta/) to train Meta's latest Llama3-405B model. This posed a huge challenge for infrastructure setup, necessitating significant innovation to handle this sheer number of GPUs working in tandem, as LLM distributed training jobs require synchronous communication and gang scheduling.
 
-Understanding the underlying infrastructure used to train the latest LLMs is essential for ML scientists to maximize the MFU (Model FLOPs Utilization), especially as infrastructure costs rise. For example, AI labs are currently racing to build the first 100K H100 cluster that would cost an estimated [$4 billion](https://www.semianalysis.com/p/100000-h100-clusters-power-network). With that in mind, here’s an overview of the components required for building the infrastructure for the latest & greatest LLMs.
+Understanding the underlying infrastructure used to train the latest LLMs is essential for ML scientists to maximize the MFU (Model FLOPs Utilization), especially as infrastructure costs rise. AI labs are currently racing to build the first 100K H100 cluster that would cost an estimated [$4 billion](https://www.semianalysis.com/p/100000-h100-clusters-power-network). With that in mind, here’s an overview of the components required for building the infrastructure for the latest & greatest LLMs.
 
 ![Meta's 24k Cluster](/assets/img/posts/2024-07-27-What-Infra-does-it-take-to-train-llama405b/Infra%20Networking%20cluster.jpg)
-__Meta’s 24k cluster design with a 7:1 oversubscription ratio__
+__Meta’s 24k H100 cluster design with a 7:1 oversubscription ratio__
 
 ## Network Topology
 
-The first and most important step is designing the networking flow of gradients across the huge number of GPUs. As aforementioned, distributed training requires synchronous communication methods like All-reduce, all-gather, and broadcast to combine and share gradients. As model sizes increase (reportedly [1.8 trillion](https://www.semianalysis.com/p/100000-h100-clusters-power-network) parameters for GPT-4), different parallelism techniques are required (Tensor, Context, Pipeline, Data) known as 4D parallelism that necessitate more communication.
+The first and most important step is designing the networking flow of gradients across the huge number of GPUs. As aforementioned, distributed training requires synchronous communication methods like All-reduce, all-gather, and broadcast to combine and share gradients. As model sizes increase (reportedly [1.8 trillion](https://www.semianalysis.com/p/100000-h100-clusters-power-network) parameters for GPT-4), different parallelism techniques are required (Tensor, Context, Pipeline, Data) known as 4D parallelism that necessitate efficent design and communication.
 
-In the ideal scenario, a GPU can communicate with any other GPU at full bandwidth (400 Gbps) using the latest Infiniband connection speed. However, achieving this for clusters of 100k GPUs would require a vast number of switches and transceivers to handle the communication traffic, making it cost prohibitive. To mitigate this, network architects trade-off by oversubscribing the aggregation top layer (as shown in the figure of Meta’s 24K cluster design with a 7:1 ratio) to reduce the overall cost.
+In the ideal scenario, a GPU can communicate with any other GPU at full bandwidth (400 Gbps) using the latest Infiniband connection speed. However, achieving this for clusters of 100k GPUs would require a vast number of switches and transceivers to handle the communication traffic, making it cost prohibitive. To mitigate this, network architects trade-off by [oversubscribing](https://networkengineering.stackexchange.com/a/60003) the aggregation top layer (as shown in the figure of Meta’s 24K cluster design with a 7:1 ratio) to reduce the overall cost.
 
-GPUs within the same rack have full bisection bandwidth with one another. Therefore, deciding the communication patterns to be network-aware is essential to efficiently utilize the hardware and avoid stragglers (slower-performing nodes in a distributed system) that could slow down the entire cluster. For example, Meta forked Nvidia’s NCCL library to optimize the communication patterns to fit their cluster design.
+Deciding the communication patterns to be network-aware is essential to efficiently utilize the hardware and avoid stragglers (slower-performing nodes in a distributed system) that could slow down the entire cluster. For example, Meta forked Nvidia’s NCCL library to optimize the communication patterns to fit their cluster design.
 
 ## Storage
 
 Training LLMs is memory-bound. While compute capabilities have rapidly evolved from different versions of GPUs (A100 → H100), the maximum memory capacity per GPU has increased, though not as dramatically as compute power. For example, A100 GPUs typically have up to 80 GB of HBM2e memory, whereas H100 GPUs can have up to 80 GB or more of HBM3 memory. More memory is essential for storing model weights, activations, and optimizer states (with Adam being the most popular optimizer, storing 3x parameters: one for the parameters themselves, one for the first moment (mean of gradients), and one for the second moment (variance of gradients)). With the rumored size of GPT-4 (1.8 trillion parameters), a total of 10.8 terabytes of memory would be required for training.
 
-Additionally, memory is required for checkpointing (saving model weights frequently) to recover in case of failure or to choose the best-performing version of the model (if the model starts overfitting the data with more training).
+Additionally, memory is required for checkpointing (saving model weights frequently) to recover in case of failure or to choose the best-performing version of the model (if the model starts overfitting the data with more training). there are two ways to checkpoint:
 
 - **Traditional way**: offloading to CPU memory and then to persistent storage (adds delay but is simpler to do).
-- **Recent way**: using spare GPUs’ HBM to just RDMA copy the current model state for checkpointing; fast but costly.
+- **Recent way**: using spare GPUs’ HBM to just RDMA copy the current model state for checkpointing; fast but require extra GPUs.
 
 Storing datasets → 15.6 trillion tokens for Llama-3 required building 240 PB Storage for training, and fast data read speeds are needed to avoid wasting GPU cycles.
 
@@ -65,7 +65,6 @@ Ensuring fault tolerance and performing regular health checks are crucial for ma
 
 2. **Health Checks**:
    - Implement scripts to detect faulty hardware (GPUs, InfiniBand, host machines, etc...).
-   - Measure power consumption, temperature, and fan speed of each GPU to detect potential failures early.
 
 3. **Network Reliability**:
    - Networks can fail due to flapping, host machine failures, or power supply issues, you need to use redundant paths and automatic failover mechanisms to ensure continuous operation.
