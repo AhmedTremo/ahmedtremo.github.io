@@ -4,7 +4,7 @@ icon: fas fa-info-circle
 order: 4
 ---
 
-I'm Ahmed Tremo, an Applied Scientist at [Microsoft](www.microsoft.com). I previously I worked as machine learning engineer working at [Dell Techonolgies](https://www.dell.com/) & a data engineer at [Lumin Systems](http://excelsystems-eg.com/).
+I'm Ahmed Tremo, an Applied Scientist at [Microsoft](https://www.microsoft.com/). I previously I worked as machine learning engineer working at [Dell Techonolgies](https://www.dell.com/) & a data engineer at [Lumin Systems](http://excelsystems-eg.com/).
 
 I graduated from The [German university in Cairo](https://www.guc.edu.eg/), with a bachelor's degree in computer engineering with an Excellent with honors grade.
 
