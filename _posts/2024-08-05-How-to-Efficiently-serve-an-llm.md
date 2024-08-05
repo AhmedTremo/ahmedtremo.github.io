@@ -1,6 +1,6 @@
 ---
 title: How to Efficiently Serve an LLM?
-date: 2024-08-04 +05:30
+date: 2024-08-05 +05:30
 categories: [LLM, Inference, Optimization, Serving]
 tags: [LLM, inference, optimization, serving]
 author: tremo
@@ -8,7 +8,7 @@ author: tremo
 
 ## How to Efficiently Serve an LLM
 
-LLMs, or **Large** Language Models, are named so because they can range from tens to hundreds of billions of parameters. Their utility is clear, as LLMs are setting new benchmarks on various evaluations and now often match or exceed human performance in multiple tasks [GPT-4 Technical Report](https://arxiv.org/html/2303.08774v4). Consequently, many companies are eager to deploy them in production. However, due to the unprecedented size of LLMs, there are significant challenges in serving them, such as slow token generation (tokens/second), memory limits for loading model parameters, KV cache (explained later), compute limits, and more. In this article, we will cover several recent ideas to help set up a robust LLM serving system.
+LLMs, or **Large** Language Models, are named so because they can range from tens to hundreds of billions of parameters. Their utility is clear, as LLMs are setting new records on various benchmarks and now often match or exceed human performance in multiple tasks [GPT-4 Technical Report](https://arxiv.org/html/2303.08774v4). Consequently, many companies are eager to deploy them in production. However, due to the unprecedented size of LLMs, there are significant challenges in serving them, such as slow token generation (tokens/second), memory limits for loading model parameters, KV cache (explained later), compute limits, and more. In this article, we will cover several recent ideas to help set up a robust LLM serving system.
 
 ![LLM Serving Overview](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/inference-engines-and-servers-architecture.png)__LLM Serving Overview__
 
