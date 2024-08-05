@@ -25,11 +25,13 @@ LLMs, or **Large** Language Models, are named so because they can range from ten
 3. After scheduling, the LLM Inference process is divided into two phases:
    - **Prefill phase**: The LLM processes the input tokens in parallel and generates the output activations known as the “KV Cache”. This step is highly efficient at utilizing the GPU's parallel processing capabilities, making input tokens generally much cheaper than output tokens (as seen in the GPT-4o pricing chart). This phase produces the first output token and is typically compute-bound.
     
-   - ![gpt-4o pricing](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/gpt-4o%20pricing.png)__GPT-4o Pricing__
+   - ![gpt-4o pricing](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/gpt-4o%20pricing.png)
+   __GPT-4o Pricing__
     
    - **Decode phase**: The LLM starts autoregressively generating output tokens one at a time. This phase is slower in terms of inference and is where optimizations are **necessary**. Output tokens at each step are concatenated with the previous tokens’ KV cache to generate the next token.
     
-   - ![KV Cache](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Caching%20explanation%20&%20reuse.png)__KV Cache Explanation & Reuse__
+   - ![KV Cache](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Caching%20explanation%20&%20reuse.png)
+   __KV Cache Explanation & Reuse__
 
 ## Optimizations
 
