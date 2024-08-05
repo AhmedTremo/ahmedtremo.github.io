@@ -23,11 +23,12 @@ LLMs, or **Large** Language Models, are so named because they can range from ten
     ![QoE](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/QoE%20Intro.png)__QoE Aware LLM Serving__
     
 3. After scheduling, the LLM Inference process is divided into two phases:
-   - **Prefill phase**: The LLM processes the input tokens in parallel and generates the output activations known as the “KV Cache”. This step is highly efficient at utilizing the GPU's parallel processing capabilities, making input tokens generally much cheaper than output tokens (as seen in the ChatGPT pricing chart). This phase produces the first output token and is typically compute-bound.
+   - **Prefill phase**: The LLM processes the input tokens in parallel and generates the output activations known as the “KV Cache”. This step is highly efficient at utilizing the GPU's parallel processing capabilities, making input tokens generally much cheaper than output tokens (as seen in the GPT-4o pricing chart). This phase produces the first output token and is typically compute-bound.
     
-    ![gpt-4o pricing](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/gpt-4o%20pricing.png)__GPT-4o Pricing__
+    ![gpt-4o pricing](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/gpt-4o%20pricing.png)
+    __GPT-4o Pricing__
     
-   - **Decode phase**: The LLM starts autoregressively generating output tokens one at a time. This phase is slower in terms of inference and is where optimizations are necessary to speed it up. Output tokens at each step are concatenated with the previous tokens’ KV cache to generate the next token.
+   - **Decode phase**: The LLM starts autoregressively generating output tokens one at a time. This phase is slower in terms of inference and is where optimizations are **necessary** to speed it up. Output tokens at each step are concatenated with the previous tokens’ KV cache to generate the next token.
     
     ![KV Cache](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Caching%20explanation%20&%20reuse.png)__KV Cache Explanation & Reuse__
 
@@ -44,24 +45,31 @@ Here are some interesting optimizations shared recently in research:
    - ![Continuous Batching](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/continuous-batching.png)__Continuous Batching__
 
 2. **Model Quantization (FP8/INT8)**:
-   - Decreasing the precision of model weights and/or activations (AWQ/GPTQ) frees up more GPU VRAM, which allows for serving larger batches of requests.
+   - Decreasing the precision of model weights and/or activations ([AWQ](https://arxiv.org/abs/2306.00978)/[GPTQ](https://arxiv.org/abs/2210.17323)) frees up more GPU VRAM, which allows for serving larger batches of requests.
    - ![Model Quantization](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/Quantaization.png)__Model Quantization__
 3. **Paged Attention**:
    - The core idea behind vLLM, the most popular open-source serving engine, is to avoid memory fragmentation that occurs due to preserving the max context length for every request by using paging (borrowed from OS paging) to manage memory efficiently.
+   - ![Paged Attention](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/PagedAttention%20VLLM.png)
+   __Paged Attention in vLLM__
 4. **Prefill Chunking / Stale-free Batching**:
-   - Proposed by the [OSDI24 paper](https://www.usenix.org/system/files/osdi24-agrawal.pdf), dividing the prefill context into smaller chunks allows merging the prefill and decode phases of different requests in the same batch.
-   - ![Sarathi-Serve](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/Prefill%20decode%20prioritizing.png)__Prefill Decode Prioritizing__
+   - Proposed by the [Sarathi-Serve paper](https://www.usenix.org/system/files/osdi24-agrawal.pdf), dividing the prefill context into smaller chunks allows merging the prefill and decode phases of different requests in the same batch.
+   - ![Sarathi-Serve](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/Prefill%20decode%20prioritizing.png)
+   __Prefill Decode Prioritizing__
 5. **Prefill/Decode Disaggregation**:
-   - As proposed by [this arxiv paper](https://arxiv.org/pdf/2407.00079), separating the prefill and decode phases and transferring KVCache through a specialized design.
-   - ![KVCache transfer in disaggregated arch](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KVCache%20transfer%20in%20disaggregated%20arch.png)__KVCache Transfer in Disaggregated Architecture__
+   - In constrast to the previous idea, this paper [Mooncake: A KVCache-centric Disaggregated
+Architecture for LLM Serving](https://arxiv.org/pdf/2407.00079) proposes separating the prefill and decode phases and transferring KVCache through a specialized design.
+   - ![KVCache transfer in disaggregated arch](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KVCache%20transfer%20in%20disaggregated%20arch.png)
+   __KVCache Transfer in Disaggregated Architecture__
 6. **KVCache Compression**:
    - As proposed by [CacheGen](https://arxiv.org/pdf/2310.07240), compressing the KVCache to speed up network transfer. This approach is beneficial for use cases with large context lengths (i.e., content summarization) which are over 16k tokens to justify the encoding/decoding CPU overhead.
-   - ![KVCache Compression](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Compression.png)__KV Cache Compression__
+   - ![KVCache Compression](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Compression.png)
+   __KV Cache Compression__
 7. **Speculative Decoding**:
-   - Using extra smaller models that generate tokens fast and in parallel. Selecting the output that matches the original model can speed up inference for simple use cases. Note that as the request batch size increases, the speed-up of speculative decoding diminishes.
+   - Using extra smaller model(s) that generate tokens fast and in parallel. Selecting the output that matches the original model can speed up inference for simple use cases. Note that as the request batch size increases, the speed-up of speculative decoding diminishes.
    - ![Speculative Decoding](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/Speculative%20Decoding.png)__Speculative Decoding__
 8. **Radix Attention (Prefix Caching)**:
-   - This is the idea behind SGLang ([arxiv link](https://arxiv.org/pdf/2312.07104)), which involves creating a data structure similar to a Prefix tree (Trie) for the KVCache to help reuse KVCache without recomputation. This only works for some use cases, like those shown in the image below:
+   - This is the idea behind SGLang ([SGLang: Efficient Execution of
+Structured Language Model Programs](https://arxiv.org/pdf/2312.07104)), which involves creating a data structure similar to a Prefix tree (Trie) for the KVCache to help reuse KVCache without recomputation. This only works for some use cases, like those shown in the image below:
    - ![Radix Attention](/assets/img/posts/2024-08-05-How-to-Efficiently-serve-an-llm/KV%20Cache%20sharing%20examples.png)__KV Cache Sharing Examples__
 9. **Early Rejection**:
    - Predicting if a request can be served once received to avoid wasted resources (i.e., the server successfully computed the prefill part but failed at the decode phase due to memory limitations) will help improve server resource utilization and prevent downtime.
@@ -75,7 +83,8 @@ Efficiently serving large language models is essential for businesses to reduce 
 ## References
 
 1. [Improving LLM Inference with Prefill Chunking / Stale-free batching (USENIX)](https://www.usenix.org/system/files/osdi24-agrawal.pdf)
-2. [Prefill/Decode Disaggregation: Efficient Transfer of KVCache (arXiv)](https://arxiv.org/pdf/2407.00079)
+2. [Mooncake: A KVCache-centric Disaggregated
+Architecture for LLM Serving](https://arxiv.org/pdf/2407.00079)
 3. [KVCache Compression and Streaming for Faster LLM Serving (arXiv)](https://arxiv.org/pdf/2310.07240)
 4. [Dynamic Memory Management for LLMs: vAttention (arXiv)](https://arxiv.org/pdf/2405.04437)
 5. [Enhancing Quality-of-Experience in LLM-Based Services (arXiv)](https://arxiv.org/pdf/2404.16283)
