@@ -1,5 +1,5 @@
 ---
-title: Spegel: Stateless Local OCI Mirror
+title: Spegel - Stateless Local OCI Mirror
 date: 2024-11-04
 categories: [OCI, Mirror, Spegel]
 tags: [OCI, Mirror, Spegel]
@@ -42,317 +42,54 @@ Let’s dive into Spegel’s architecture through a series of diagrams:
 
 This diagram shows how Spegel pods form a P2P network within the cluster. Each Spegel pod interacts with containerd and, if necessary, falls back to the external registry.
 
-```mermaid
-graph TB
-    subgraph "External"
-        ER["External Registry"]
-    end
-
-    subgraph "Kubernetes Cluster"
-        subgraph "Node 1"
-            SP1["Spegel Pod"]
-            CD1["Containerd"]
-            SP1 <-->|interacts| CD1
-            CD1 -->|fallback| ER
-        end
-        
-        subgraph "Node 2"
-            SP2["Spegel Pod"]
-            CD2["Containerd"]
-            SP2 <-->|interacts| CD2
-            CD2 -->|fallback| ER
-        end
-        
-        subgraph "Node 3"
-            SP3["Spegel Pod"]
-            CD3["Containerd"]
-            SP3 <-->|interacts| CD3
-            CD3 -->|fallback| ER
-        end
-
-        SP1 <-->|P2P Network| SP2
-        SP2 <-->|P2P Network| SP3
-        SP3 <-->|P2P Network| SP1
-    end
-```
+![Cluster Architecture](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/cluster_architecture.png)__Cluster Architecture__
 
 ### 2. Pod Component Architecture
 
 Displays the components within a Spegel pod, including registry services, P2P components, and state management.
 
-```mermaid
-graph TB
-    subgraph "Spegel Pod"
-        subgraph "Registry Service"
-            RS[HTTP Server /v2/]
-            RH[Request Handler]
-            RS --> RH
-        end
-
-        subgraph "P2P Components"
-            P2P[P2P Router]
-            DHT[DHT Provider]
-            BS[Bootstrapper]
-            P2P --> DHT
-            BS --> P2P
-        end
-
-        subgraph "State Management"
-            ST[State Tracker]
-            MT[Metrics]
-            ST --> MT
-        end
-
-        CD[Containerd Client]
-        
-        RH --> P2P
-        ST --> P2P
-        CD --> ST
-    end
-
-    subgraph "Node Components"
-        CDD[Containerd Daemon]
-        CS[Content Store]
-        CDD --> CS
-    end
-
-    CD --> CDD
-```
+![Pod Component Architecture](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/pod_component_architecture.png)__Pod Component Architecture__
 
 ### 3. Image Pull Flow
 
 This sequence shows how an image pull request is handled, covering both peer pulls and fallback to external registry.
 
-```mermaid
-sequenceDiagram
-    participant CD as Containerd
-    participant SR as Spegel Registry
-    participant P2P as P2P Router
-    participant PR as Peer Registry
-    participant ER as External Registry
-
-    Note over SR,P2P: 20ms default resolve timeout
-    Note over SR,P2P: 3 default resolve retries
-
-    CD->>SR: GET /v2/{name}/manifests/{ref}
-    SR->>P2P: Resolve(key, allowSelf, retries)
-    
-    alt Peer Found
-        P2P-->>SR: Return Peer Address
-        SR->>PR: Request Content
-        PR-->>SR: Stream Content
-        SR-->>CD: Return Content
-        CD->>CS: Store Content
-    else No Peers Available (within 20ms)
-        SR-->>CD: 404 Not Found
-        CD->>ER: Request from External
-        ER-->>CD: Return Content
-        CD->>CS: Store Content
-    end
-```
+![Image Pull Flow](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/image_pull_flow.png)__Image Pull Flow__
 
 ### 4. P2P Network Formation
 
 Illustrates how nodes discover each other and form the P2P network through leader election and peer sharing.
 
-```mermaid
-sequenceDiagram
-    participant N1 as Node 1
-    participant N2 as Node 2
-    participant N3 as Node 3
-    participant LE as Leader Election
-    
-    Note over N1,LE: 10s lease duration
-    Note over N1,LE: 5s renew deadline
-    Note over N1,LE: 2s retry period
-
-    N1->>LE: Participate in Election
-    N2->>LE: Participate in Election
-    N3->>LE: Participate in Election
-    LE->>N1: Elected Leader
-    N2->>N1: Discover Leader
-    N3->>N1: Discover Leader
-    N1->>N2: Share Peer List
-    N1->>N3: Share Peer List
-    N2->>N3: Establish P2P Connection
-    
-    Note over N1,N3: P2P Network Formed
-```
+![P2P Network Formation](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/p2p_network_formation.png)__P2P Network Formation__
 
 ### 5. State Management and Content Advertisement
 
 Depicts how content availability is maintained and advertised across the P2P network.
 
-```mermaid
-sequenceDiagram
-    participant ST as State Tracker
-    participant CD as Containerd
-    participant P2P as P2P Router
-    participant DHT as DHT Network
-    participant MT as Metrics
-
-    Note over ST,DHT: Content TTL: 10 minutes
-    Note over ST,DHT: Refresh: Every 9 minutes
-
-    loop Every 9 minutes
-        ST->>CD: List Images
-        CD-->>ST: Image List
-        
-        loop For each image
-            ST->>P2P: Advertise(image_keys)
-            P2P->>DHT: Provide(keys)
-        end
-        
-        ST->>MT: Update Metrics
-    end
-
-    CD-->>ST: Image Event (Create/Update/Delete)
-    ST->>P2P: Update Advertisement
-    ST->>MT: Update Metrics
-```
+![State Management and Content Advertisement](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/state_management_and_content_advertisement.png)__State Management and Content Advertisement__
 
 ### 6. Content Resolution Process
 
-Shows content location and retrieval, including peer selection and retry mechanisms.
-
-```mermaid
-sequenceDiagram
-    participant SR as Spegel Registry
-    participant P2P as P2P Router
-    participant DHT as DHT Network
-    participant PR1 as Peer 1
-    participant PR2 as Peer 2
-
-    SR->>P2P: Resolve(content_key)
-    P2P->>DHT: FindProviders(key)
-    
-    par Parallel Resolution
-        DHT-->>P2P: Found Peer 1
-        DHT-->>P2P: Found Peer 2
-    end
-
-    P2P->>SR: Return First Available Peer
-    
-    Note over SR,PR2: Default 20ms timeout
-    Note over SR,PR2: 3 retry attempts
-    
-    alt Try Peer 1
-        SR->>PR1: Request Content
-        PR1-->>SR: Stream Content
-    else Peer 1 Fails
-        SR->>PR2: Request Content
-        PR2-->>SR: Stream Content
-    end
-```
+![Content Resolution Process](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/content_resolution_process.png)__Content Resolution Process__
 
 ### 7. Data Flow Paths
 
 Describes content and control flow within the system, including peer transfers and fallback.
 
-```mermaid
-graph LR
-    subgraph "Content Paths"
-        CD[Containerd]
-        SP[Spegel]
-        P[Peers]
-        ER[External Registry]
-        CS[Content Store]
-        
-        CD -->|Request| SP
-        SP -->|Check| P
-        P -->|Content| SP
-        SP -->|Return| CD
-        CD -->|Store| CS
-
-        SP -->|404| CD
-        CD -->|Fallback| ER
-    end
-
-    subgraph "P2P Operations"
-        P2P[P2P Network]
-        DHT[DHT]
-        ST[State Tracker]
-        
-        P2P -->|Advertise| DHT
-        DHT -->|Discover| P2P
-        ST -->|Update| P2P
-    end
-```
+![Data Flow Paths](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/data_flow_paths.png)__Data Flow Paths__
 
 ### 8. Failure Handling
 
 Demonstrates failure handling scenarios within the system.
 
-```mermaid
-sequenceDiagram
-    participant CD as Containerd
-    participant SR as Spegel Registry
-    participant P2P as P2P Router
-    participant PR as Peer
-    participant ER as External Registry
-
-    Note over SR,ER: Failure Scenarios
-
-    alt Peer Not Found
-        CD->>SR: Request Content
-        SR->>P2P: Resolve(key)
-        P2P--xSR: No Peers Available
-        SR-->>CD: 404 Not Found
-        CD->>ER: Fallback Request
-    end
-
-    alt Peer Connection Failed
-        SR->>PR: Request Content
-        PR--xSR: Connection Failed
-        SR->>P2P: Resolve(key) Retry
-        P2P-->>SR: Alternative Peer
-    end
-
-    alt Content Corrupted
-        SR->>PR: Request Content
-        PR-->>SR: Stream Content
-        SR--xCD: Verification Failed
-        CD->>ER: Fallback Request
-    end
-```
+![Failure Handling](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/failure_handling.png)__Failure Handling__
 
 ### 9. Metrics Collection
 
 Shows how metrics are collected and organized across the system components.
 
-```mermaid
-graph TB
-    subgraph "Metrics Sources"
-        RQ[Registry Requests]
-        P2P[P2P Operations]
-        ST[State Changes]
-    end
+![Metrics Collection](/assets/img/posts/2024-11-04-Spegel-stateless-local-OCI-mirror/metrics_collection.png)__Metrics Collection__
 
-    subgraph "Metric Types"
-        CT[Counters]
-        HT[Histograms]
-        GT[Gauges]
-    end
+## Conclusion
 
-    subgraph "Prometheus Metrics"
-        MR[mirror_requests_total]
-        RD[resolve_duration_seconds]
-        AI[advertised_images]
-        AK[advertised_keys]
-        RL[request_latency]
-        IF[requests_inflight]
-    end
-
-    RQ --> CT
-    RQ --> HT
-    P2P --> HT
-    P2P --> GT
-    ST --> GT
-
-    CT --> MR
-    HT --> RD
-    HT --> RL
-    GT --> AI
-    GT --> AK
-    GT --> IF
-```
+I hope I gave a visual understanding of the Spegel project and its architecture. If you got intrigued, next step would be to dive into the source code at [Spegel GitHub](https://github.com/spegel-org/spegel/tree/main).
